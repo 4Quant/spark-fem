@@ -10,7 +10,6 @@ libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.1"
 
 libraryDependencies += "org.apache.spark" %% "spark-graphx" % "1.4.1"
 
-libraryDependencies += "com.google.guava" % "guava" % "14.0.1"
 
 publishMavenStyle := true
 
