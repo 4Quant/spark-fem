@@ -1,8 +1,3 @@
-import xerial.sbt.Sonatype.SonatypeKeys
-import SonatypeKeys._
-
-xerial.sbt.Sonatype.sonatypeSettings
-
 name := "spark-fem"
 
 version := "0.1-SNAPSHOT"
@@ -11,9 +6,9 @@ organization := "fourquant"
 
 scalaVersion := "2.10.4"
 
-libraryDependencies += "org.apache.spark" %% "spark-core" % "1.1.0"
+libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.1"
 
-libraryDependencies += "org.apache.spark" %% "spark-graphx_2.10" % "1.1.0"
+libraryDependencies += "org.apache.spark" %% "spark-graphx" % "1.4.1"
 
 libraryDependencies += "com.google.guava" % "guava" % "14.0.1"
 
@@ -52,3 +47,5 @@ pomExtra := (
 // libraryDependencies += "com.novocode" % "junit-interface" % "0.9" % "test"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
+
+//javaOptions in test += "-Xmx2G"
