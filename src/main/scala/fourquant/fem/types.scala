@@ -23,7 +23,7 @@ object types extends Serializable {
    * @tparam T
    */
   trait ImageVertex[T] extends Serializable {
-    val index: Int
+    val index: Long
     val lat_pos: D3int // inside the lattice (for spread events)
     val real_pos: Option[D3float] // the real-world position
     val value: T
@@ -61,10 +61,12 @@ object types extends Serializable {
     def asIV: ImageVertex[T] = this
   }
 
+
+
   /**
    * A class for storing the image vertex information to prevent excessive tuple-dependence
    */
-  case class SimpleImageVertex[T](index: Int, lat_pos: D3int = D3int(0,0,0), value: T,
+  case class SimpleImageVertex[T](index: Long, lat_pos: D3int = D3int(0,0,0), value: T,
                                original: Boolean = false, real_pos: Option[D3float] = None) extends
   ImageVertex[T] {
     override def shift(dx: Int, dy: Int, dz: Int): ImageVertex[T] = SimpleImageVertex[T](
@@ -101,7 +103,7 @@ object types extends Serializable {
 
     }
   }
-  case class ArrayImageVertex[T](index: Int, lat_pos: D3int = D3int(0,0,0), value: T = 0,
+  case class ArrayImageVertex[T](index: Long, lat_pos: D3int = D3int(0,0,0), value: T = 0,
                                  original: Boolean = false, velocity: D3float = D3float(0.0),
                                  real_pos: Option[D3float] = None,
                                  last_pos: Array[D3float] = Array.empty[D3float])
@@ -125,6 +127,18 @@ object types extends Serializable {
 
     override def get_history(): Array[D3float] = last_pos
   }
+
+
+  /**
+   * A simple output class for use with SparkSQL and other tools
+   * @param time time the point is representing
+   * @param pos_x the vertex position in x
+   * @param pos_y the vertex position in y
+   * @param pos_z the vertex position in z
+   */
+  case class TimedPrimitiveVertex(time: Double, pos_x: Double, pos_y: Double, pos_z: Double,
+                                   index: Long)
+
   /**
    * Edges connecting images, the orientation is the unit vector between the two points
    *

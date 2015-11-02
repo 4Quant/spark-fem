@@ -4,6 +4,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.graphx._
 import org.apache.spark.rdd.RDD
 
+import scala.annotation.tailrec
+
 /**
 * The standard functions needed for FEM analysis
 */
@@ -91,6 +93,15 @@ object functions extends Serializable {
     Graph(newEdges,mGraph.edges)
   }
 
+  /**
+   * Run a given graph through n-steps of analysis
+   * @param mGraph
+   * @param dt time-step for integration
+   * @param n number of steps
+   * @tparam T type of values being moved
+   * @return
+   */
+  @tailrec
   def nsteps[T](mGraph: Graph[types.ImageVertex[T], types.ImageEdge], dt: Double, n: Int):
     Graph[types.MovingImageVertex[T],types.ForceEdge] = {
     val fGraph = calcForces(mGraph)
@@ -106,6 +117,14 @@ object functions extends Serializable {
       nsteps(uGraph, dt,n-1)
     } else { // it is 1 now
       movePoints(fGraph,dt)
+    }
+  }
+
+  def expandMovingPoints[A,B](mGraph: Graph[types.MovingImageVertex[A], B], dt: Double) = {
+    mGraph.vertices.flatMap{
+      case (id,vertData) =>
+        for((cPt,i) <- vertData.get_history().zipWithIndex)
+          yield types.TimedPrimitiveVertex(i*dt,cPt.x,cPt.y,cPt.z,vertData.index)
     }
   }
 

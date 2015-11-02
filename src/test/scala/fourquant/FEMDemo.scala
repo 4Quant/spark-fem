@@ -12,6 +12,8 @@ class FEMTests extends FunSuite with Matchers with LocalSparkContext with Serial
   val easyRow = Array(0, 1, 1, 0, 1, 4, 2, 1, 3, 1, 2, 3, 3, 4, 3, 2, 1, 2, 3)
   val testImg = Array(easyRow, easyRow, easyRow, easyRow, easyRow, easyRow, easyRow, easyRow);
 
+  val dt = 0.01
+  val steps = 5
   test("Create Graph from Points") {
       val sc = getSpark("Create Graph")
       val myGraph = fem.functions.twoDArrayToGraph(sc, testImg)
@@ -40,8 +42,8 @@ class FEMTests extends FunSuite with Matchers with LocalSparkContext with Serial
     val myGraph = fem.functions.twoDArrayToGraph(sc, testImg)
     val firstForces = fem.functions.calcForces(myGraph)
     val summedForces = fem.functions.sumForces(firstForces)
-    val dt = 0.05
-    val newGraph = fem.functions.movePoints(firstForces,0.05)
+
+    val newGraph = fem.functions.movePoints(firstForces,dt)
     newGraph.vertices.collect.
       foreach { cpt =>
       println(cpt._2.real_pos.toString + ": " + cpt._1)
@@ -53,11 +55,26 @@ class FEMTests extends FunSuite with Matchers with LocalSparkContext with Serial
   test("Move a few steps") {
     val sc = getSpark("Operate Graph")
     val myGraph = fem.functions.twoDArrayToGraph(sc, testImg)
-    val movedGraph = fem.functions.nsteps(myGraph,0.01,5)
+    val movedGraph = fem.functions.nsteps(myGraph,dt,steps)
     movedGraph.vertices.collect.foreach{
       case (id,iv) =>
         println(s"""Point:$id\t->${iv.get_history().mkString(",")}""")
         assert(iv.get_history().length == 5, "History should be length 5 at every point")
     }
+  }
+
+  test("Transform to a list of points") {
+    val sc = getSpark("Transform Graph")
+    val myGraph = fem.functions.twoDArrayToGraph(sc, testImg)
+
+    val movedGraph = fem.functions.nsteps(myGraph,dt,steps)
+    val ptList = fem.functions.expandMovingPoints(movedGraph,dt)
+    ptList.groupBy(_.index).collect.foreach{
+      case(id,ptGrp) =>
+        assert(ptGrp.toList.length == 5, "There should be 5 for each index")
+    }
+    ptList.map(_.time).min should be >= 0.0
+    ptList.map(_.time).max should be < ((steps+1)*dt)
+
   }
 }
